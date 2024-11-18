@@ -1,4 +1,4 @@
-module github.com/audrastump/draft
+module github.com/Azure/draft
 
 go 1.22.0
 
