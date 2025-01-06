@@ -48,6 +48,7 @@ env:
   CLUSTER_NAME: {{ .Config.GetVariableValue "CLUSTERNAME" }}
   CLUSTER_RESOURCE_GROUP: {{ .Config.GetVariableValue "CLUSTERRESOURCEGROUP" }}
   CLUSTER_RESOURCE_TYPE: {{ .Config.GetVariableValue "CLUSTERRESOURCETYPE" }}
+  CREATE_NAMESPACE: {{ .Config.GetVariableValue "CREATENAMESPACE" }}
   DOCKER_FILE: {{ .Config.GetVariableValue "DOCKERFILE" }}
   BUILD_CONTEXT_PATH: {{ .Config.GetVariableValue "BUILDCONTEXTPATH" }}
   CHART_PATH: {{ .Config.GetVariableValue "CHARTPATH" }}
@@ -121,8 +122,8 @@ jobs:
           echo "PRIVATE_CLUSTER=$result" >> "$GITHUB_OUTPUT"
 
       # Deploys application
-      - name: Deploy application on private cluster
-        if: steps.isPrivate.outputs.PRIVATE_CLUSTER == 'true'
+      - name: Deploy application on private cluster with created namespace
+        if: ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER == 'true' && env.CREATE_NAMESPACE != 'false'}}
         run: |
           command_id=$(az aks command invoke --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command "helm upgrade --wait -i -f ${{ env.CHART_OVERRIDE_PATH }} --set ${{ env.CHART_OVERRIDES }} --set image.tag=${{ github.sha }} automated-deployment ${{ env.CHART_PATH }} --namespace ${{ env.NAMESPACE }} --create-namespace --timeout 240s" --file . --query id -o tsv)
           result=$(az aks command result --resource-group ${{ env.CLUSTER_RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --command-id $command_id)
@@ -133,13 +134,13 @@ jobs:
             exit $exitCode
           fi
 
-      - name: Deploy application on public cluster
-        if: ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER != 'true' && env.CLUSTER_RESOURCE_TYPE != 'Microsoft.ContainerService/fleets' }}
+      - name: Deploy application on public cluster with created namespace
+        if: ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER != 'true' && env.CREATE_NAMESPACE != 'false'}}
         run: |
           helm upgrade --wait -i -f ${{ env.CHART_OVERRIDE_PATH }} --set ${{ env.CHART_OVERRIDES }} --set image.tag=${{ github.sha }} automated-deployment ${{ env.CHART_PATH }} --namespace ${{ env.NAMESPACE }} --create-namespace
 
-      - name: Deploy application on fleet hub cluster
-        if: ${{ env.CLUSTER_RESOURCE_TYPE == 'Microsoft.ContainerService/fleets' }}
+      - name: Deploy application without creating namespace
+        if: ${{ env.CREATE_NAMESPACE == 'false' }}
         run: |
           helm upgrade -i -f ${{ env.CHART_OVERRIDE_PATH }} --set ${{ env.CHART_OVERRIDES }} --set image.tag=${{ github.sha }} automated-deployment ${{ env.CHART_PATH }} --namespace ${{ env.NAMESPACE }}
 `}}
