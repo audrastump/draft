@@ -86,3 +86,10 @@ variables:
       value: "default"
     description: "the Kubernetes namespace"
     versions: ">=0.0.1"
+  - name: "CREATENAMESPACE"
+    type: "string"
+    kind: "createNamespace"
+    default:
+      value: "true"
+    description: "'true' to create a new Kubernetes namespace, or 'false' to use an existing one"
+    versions: ">=0.0.1"

@@ -24,6 +24,7 @@ func TestGitHubWorkflowHelmTemplates(t *testing.T) {
 				"CLUSTERRESOURCEGROUP":   "testClusterRG",
 				"CLUSTERRESOURCETYPE":    "Microsoft.ContainerService/managedClusters",
 				"CLUSTERNAME":            "testCluster",
+				"CREATENAMESPACE":        "true",
 				"KUSTOMIZEPATH":          "./overlays/production",
 				"DEPLOYMENTMANIFESTPATH": "./manifests",
 				"DOCKERFILE":             "./Dockerfile",
